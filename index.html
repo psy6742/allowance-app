@@ -109,8 +109,8 @@ a{color:inherit}
 .kid .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:9.5em}
 
 /* tabs */
-.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding-bottom:9px}
-.tabs.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding-bottom:9px}
+.tabs.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 .tab{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   padding:7px 2px 6px;border-radius:14px;background:#fff;border:1.5px solid var(--line);
@@ -151,6 +151,7 @@ main{padding-top:14px}
 .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
 .btn.warm{background:#F2B233;border-color:#F2B233;color:#3B2A05}
 .btn.soft{background:var(--bg2);border-color:var(--line)}
+.btn.on{background:var(--navy);border-color:var(--navy);color:#fff}
 .btn.teal{background:var(--in-bg);border-color:#BFE2DC;color:var(--in-ink)}
 .btn.coral{background:var(--out-bg);border-color:#F7CFC4;color:#A83A24}
 .btn.green{background:var(--sav-bg);border-color:#BEEBD8;color:#07724F}
@@ -500,7 +501,7 @@ input[type=file]{display:none}
         </div>
       </div>
       <div class="top-actions">
-        <button class="btn sm soft" id="brandGear" aria-label="보호자 설정">⚙️</button>
+        <button class="btn sm soft" id="brandGear" aria-label="보호자 설정" aria-pressed="false">⚙️</button>
       </div>
     </div>
     <div class="kidbar" id="kidbar"></div>
@@ -508,7 +509,6 @@ input[type=file]{display:none}
       <button class="tab on" data-tab="calendar"><span class="ic">📅</span><span class="tx">달력·용돈</span></button>
       <button class="tab" data-tab="summary"><span class="ic">📊</span><span class="tx">결산·저축</span></button>
       <button class="tab" data-tab="invest"><span class="ic">📈</span><span class="tx">모의투자</span></button>
-      <button class="tab" data-tab="settings"><span class="ic">⚙️</span><span class="tx">보호자 설정</span></button>
     </nav>
   </div>
 </header>
@@ -1256,7 +1256,9 @@ function renderAll(){
   if(!invOn && ui.tab === 'invest') ui.tab = 'calendar';
   const invTab = document.querySelector('#tabs .tab[data-tab="invest"]');
   if(invTab) invTab.classList.toggle('hide', !invOn);
-  document.getElementById('tabs').classList.toggle('three', !invOn);
+  document.getElementById('tabs').classList.toggle('two', !invOn);
+  const gearBtn = document.getElementById('brandGear');
+  if(gearBtn){ gearBtn.classList.toggle('on', ui.tab === 'settings'); gearBtn.setAttribute('aria-pressed', ui.tab === 'settings' ? 'true' : 'false'); }
   document.getElementById('kidbar').innerHTML = st ? kidbarHTML() : '';
   $$('#tabs .tab').forEach(b=>b.classList.toggle('on', b.dataset.tab === ui.tab));
   const view = document.getElementById('view');
@@ -1275,6 +1277,7 @@ function goTab(tab){
     toast('이 아이는 모의투자를 쓰지 않아요. 보호자 설정에서 켜면 나타나요.', {emoji:'📈'});
     tab = 'calendar';
   }
+  if(tab === 'settings' && ui.tab !== 'settings') ui.lastMain = ui.tab || 'calendar';
   if(tab === 'settings' && S().pin.enabled && !ui.unlocked){
     if(window.__ui2 && window.__ui2.askPin) window.__ui2.askPin(()=>{ ui.tab = tab; renderAll(); });
     return;
@@ -1780,7 +1783,12 @@ function setTab(c){
   let dayOpts = '';
   for(let i=1;i<=31;i++) dayOpts += '<option value="'+i+'" '+(Number(auto.monthday)===i?'selected':'')+'>'+i+'일</option>';
 
-  return '<div class="grid two">'+
+  return '<div class="row" style="margin:0 0 11px;gap:10px">'+
+      '<button class="btn sm soft" data-act="tab" data-tab="'+esc(ui.lastMain || 'calendar')+'"><span class="ic">←</span> 돌아가기</button>'+
+      '<div class="grow"></div>'+
+      '<span class="xs muted">⚙️ 보호자 설정</span>'+
+    '</div>'+
+    '<div class="grid two">'+
     '<div class="stack">'+
 
       /* 자동 용돈 */
@@ -2710,7 +2718,7 @@ function boot(){
   });
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refreshOnOpen(); });
   $$('#tabs .tab').forEach(b=> b.addEventListener('click', ()=> U.goTab(b.dataset.tab)));
-  document.getElementById('brandGear').addEventListener('click', ()=> U.goTab('settings'));
+  document.getElementById('brandGear').addEventListener('click', ()=> U.goTab(ui.tab === 'settings' ? (ui.lastMain || 'calendar') : 'settings'));
 
   /* 테스트용 최소 핸들 */
   window.__allowance = {
