@@ -1,0 +1,13 @@
+# 개발/검증 도구 (배포에 불필요)
+tests/
+__pycache__/
+*.pyc
+
+# OS / 편집기
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 로컬 백업/내보내기
+*.backup.json
